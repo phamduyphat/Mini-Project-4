@@ -1,11 +1,13 @@
 class Flight:
     reservations = {}
-    def __init__(self, flight_number, destination, departure_time, total_seats, booked_seats = 0):
+    def __init__(self, flight_number, destination, departure_time, total_seats: int, booked_seats = 0):
         self.flight_number = flight_number
         self.destination = destination
         self.departure_time = departure_time
-        self.total_seats = total_seats
-        self.booked_seats = booked_seats
+        if total_seats < 0:
+            raise ValueError("Total seats must be a positive number")
+        self.total_seats = int(total_seats)
+        self.booked_seats = int(booked_seats)
 
     def get_flight_number(self):
         return self.flight_number
@@ -23,14 +25,16 @@ class Flight:
         return self.booked_seats
 
     def book(self, reservation, token):
+        dict({token: None}, self.reservations)  # Check duplicate tokens
+
         if self.booked_seats < self.total_seats:
             self.booked_seats += 1
             self.reservations[token] = reservation
-        raise ValueError
+        raise ValueError("Unable to book the flight: No available seats")
 
     def cancel(self, token):
         if token not in self.reservations.keys():
-            raise ValueError
+            raise ValueError("Unable to cancel the flight: Customer not found")
         self.booked_seats -= 1
         del self.reservations[token]
 
@@ -48,6 +52,8 @@ class Passenger:
     def __init__(self, name, age: int, passport_number):
         self.__name = name
         self.__age = int(age)
+        if age < 0:
+            raise ValueError("Age must be a positive number")
         self.__passport_number = passport_number
 
     def get_name(self):
@@ -91,6 +97,8 @@ class AirlineSystem:
                 print("Flight booked successfully") 
             except ValueError:
                 print("Flight is fully booked")
+            except SyntaxError:
+                print("Reservation already exists")
         print("Flight doesn't exist")
 
     def cancel_reservation(self, flight_number, passport_number):
