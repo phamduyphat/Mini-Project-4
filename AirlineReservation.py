@@ -68,6 +68,23 @@ def auth():
         input("Press anything to go back")
 
 class Flight:
+    """
+    The Flight class represents a single flight with its own attributes and methods. The seats and reservations are stored in dictionaries where the keys are the seat numbers and the values are Seat objects and Reservation objects respectively.
+
+    Attributes:
+        flight_number (str): the flight number
+        destination (str): the destination of the flight
+        departure_time (str): the departure time of the flight
+        total_seats (int): the total number of seats in the flight
+        booked_seats (int): the number of booked seats in the flight
+        seats (dict): a dictionary of seat objects
+        reservations (dict): a dictionary of reservation objects
+
+    Methods:
+        book(seat_number, passenger, token): books a seat for a passenger
+        cancel(seat_number, passenger, token): cancels a reservation for a passenger
+        view_flight_details(): returns a string describing the flight details
+    """
     reservations = {}
     seats = {}
     def __init__(self, flight_number, destination, departure_time, total_seats: int, booked_seats = 0):
@@ -146,6 +163,25 @@ class Flight:
                 )
 
 class Seat:
+    """
+    The Seat class represents an individual seat in a flight.
+
+    Attributes:
+        seat_number (int): The seat number.
+        seat_type (str): The type of the seat (e.g., Economy, Business, First Class).
+        is_available (bool): The availability status of the seat.
+
+    Methods:
+        __init__(self, seat_number, seat_type, is_available): Initializes a new Seat instance with the given attributes.
+    """
+    
+    def __init__(self, seat_number, seat_type: str, is_available: bool):
+        self.seat_number = int(seat_number)
+        self.seat_type = seat_type
+        if not isinstance(is_available, bool):
+            raise TypeError("is_available must be a boolean")
+        self.is_available = is_available
+
     def __init__(self, seat_number, seat_type: str, is_available: bool):    # TODO: add grid layout seats
         self.seat_number = int(seat_number)
         self.seat_type = seat_type
@@ -154,6 +190,22 @@ class Seat:
         self.is_available = is_available
 
 class Passenger:
+    """
+    The Passenger class represents an individual passenger with their own attributes and methods.
+
+    Attributes:
+        name (str): The name of the passenger.
+        age (int): The age of the passenger.
+        passport_number (str): The passport number of the passenger.
+
+    Methods:
+        __init__(self, name = "John Doe", age = 18, passport_number = "316588"): Initializes a new Passenger instance with the given attributes.
+        get_name(): Returns the name of the passenger.
+        get_age(): Returns the age of the passenger.
+        get_passport_number(): Returns the passport number of the passenger.
+        get_passenger(): Returns a string describing the passenger.
+        __str__(): Returns a string describing the passenger.
+    """
     def __init__(self, name = "John Doe", age = 18, passport_number = "316588"):
         self.__name = name
         self.__age = int(age)
@@ -178,6 +230,21 @@ class Passenger:
         return self.get_passenger()
 
 class Reservation(Passenger):
+    """
+    The Reservation class represents a passenger's reservation for a flight.
+
+    Attributes:
+        flight_number (str): The flight number of the reservation.
+        seat_number (int): The seat number of the reservation.
+        passenger (Passenger): The passenger who made the reservation.
+
+    Methods:
+        __init__(self, flight_number, seat_number, passenger): Initializes a new Reservation instance with the given attributes.
+        get_flight(): Returns the flight number of the reservation.
+        get_seat_number(): Returns the seat number of the reservation.
+        get_passenger(): Returns the passenger who made the reservation.
+    """
+    
     def __init__(self, flight_number, seat_number, passenger):
         self.__flight = flight_number
         self.__seat_number = int(seat_number)
@@ -196,7 +263,20 @@ class Reservation(Passenger):
         return self.passenger
     
 class AirlineSystem:
-    
+    """
+    The AirlineSystem class manages the overall airline reservation system.
+
+    Attributes:
+        _flights (dict): A dictionary of Flight objects, where keys are flight numbers.
+
+    Methods:
+        __init__(self, flights): Initializes a new AirlineSystem instance with a given dictionary of flights.
+        add_flight(self, flight): Adds a new flight to the system.
+        book_flight(self, flight_number, seat_number, passenger): Books a seat for a passenger on a specified flight.
+        cancel_reservation(self, flight_number, seat_number, passenger): Cancels a passenger's reservation.
+        view_flight_details(self, flight_number): Returns the details of a specified flight.
+    """
+
     def __init__(self, flights):
         if not isinstance(flights, dict):
             raise TypeError("Flights must be a dictionary")
@@ -326,4 +406,3 @@ ________________________________________________________________________________
             time.sleep(1.2)
             getpass("Press anything to go back")
             clear()
-

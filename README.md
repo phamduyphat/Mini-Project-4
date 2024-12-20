@@ -1,4 +1,4 @@
-# Airline Reservation System
+# [Airline Reservation System](https://github.com/phamduyphat/Mini-Project-4)
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -54,13 +54,23 @@ The main program flow is controlled by the `auth()` function, which handles user
 
 ## Challenges Faced
 
-1. Error Handling: Implementing robust error handling for various scenarios.
-2. Data Management: Efficiently storing and retrieving flight and reservation data.
-3. User Interface: Creating an intuitive command-line interface.
-4. Security: Ensuring proper authentication and protecting sensitive user data.
-5. Scalability: Designing the system to accommodate potential future expansions.
-6. Performance: Optimizing performance for large datasets and frequent operations.
-7. Testing: Thorough testing of edge cases and error conditions.
+### 1. Collaborative Coding and Task Distribution
+
+Working in a group of four presented unique challenges. Achieving consistency across the entire project was difficult since all members had different coding styles. The need to develop the system incrementally, with completion of one section before moving to the next, forced simultaneous collaboration and consolidation phases. This is different from previous projects that are handled piece by piece, requiring careful planning and coordination.
+
+### 2. Balancing OOP Principles with Practicality
+
+Although the assignment made a big point of encapsulation, inheritance, and polymorphism, the team had to weigh these principles against the dangers of over-complication. They needed to be critical in assessing where such concepts really improved the system and where simpler ways would work.
+
+### 3. Comprehensive Error Handling
+
+Developing a flight reservation system required great attention to error handling and input validation. The conditional statements used here are quite extensive in managing a variety of scenarios so that the system remains stable and user-friendly even when receiving unexpected inputs or edge cases.
+
+### 4. Clarifying Assignment Requirements
+
+The project prompt had some ambiguities that needed interpretation. Group members worked together to clarify these points, such as the separation of employee and customer functionalities, the limitation of purchasing tickets by one customer, and other logical divisions of the system.
+
+These challenges not only tested the team's coding skills but also their ability to collaborate effectively, interpret complex requirements, and balance theoretical concepts with practical implementation needs.
 
 ## Installation and Usage
 
@@ -68,3 +78,13 @@ To run this program:
 1. Ensure Python is installed on your system.
 2. Clone or download the repository.
 3. Run the script using a Python interpreter.
+
+## Credits
+
+This project was made possible by the following students from VinUniversity:
+
+- Le Thao Vy
+- Nguyen Anh Duc
+- Nguyen Dat Thanh
+- [Pham Duy Phat](https://phamduyphat.pp.ua)
+- Pham Tien Huy
