@@ -81,7 +81,7 @@ To run this program:
 
 ## Credits
 
-This project was made possible by the following students from VinUniversity:
+This project was made possible by the following students from VinUniversity COMP1010 - Fall 2024 Group 9:
 
 - Le Thao Vy
 - Nguyen Anh Duc
