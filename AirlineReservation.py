@@ -1,5 +1,9 @@
 import os
 import platform
+from getpass import getpass
+import time
+
+
 
 # clear() is a function that will clear the command line interface
 #   of any text, leaving the user with a blank slate
@@ -8,7 +12,7 @@ import platform
 #   all of the information that was previously displayed
 #   It is also useful for creating a more interactive
 #   interface by allowing the user to see only the
-#   most relevant information at any given time
+#   most relevant information at any given timeh
 def clear():
     # The following will clear the command line interface
     #   on Windows systems
@@ -28,6 +32,40 @@ def clear():
     elif platform.system() == "Darwin":
         Mac_clear()
 
+def auth():
+    while True:
+        # Create login authentication from console
+        clear()
+        print("1. Login")
+        print("2. Signup")
+        choice = input("Enter your choice: ")
+        if choice == "1":
+            username = input("Enter your username: ")
+            password = getpass("Enter your password: ")
+            if username in logins:
+                if logins[username][0] == hash(password):
+                    print("Login successful")
+                    return logins[username][1]
+                else:
+                    print("Incorrect password")
+            else:
+                print("User not found")
+        elif choice == "2":
+            username = input("Enter your username: ")
+            password = getpass("Enter your password: ")
+            name = input("Enter your name: ")
+            age = input("Enter your age: ")
+            passport_number = input("Enter your passport number: ")
+            if username in logins:
+                print("User already exists")
+            else:
+                logins[username] = [hash(password), Passenger(name, age, passport_number)]
+                print("Signup successful")
+                
+                return Passenger(name, age, passport_number)
+        else:
+            continue
+        input("Press anything to go back")
 
 class Flight:
     reservations = {}
@@ -58,46 +96,65 @@ class Flight:
         return self.booked_seats
 
     def book(self, reservation, token):
-        dict({token: None}, self.reservations)  # Check duplicate tokens
         seat_number = reservation.get_seat_number()
+        if seat_number not in self.seats.keys():
+            raise KeyError("Invalid seat_number")
         if self.seats[seat_number].is_available == True:
             self.booked_seats += 1
-            self.reservations[token] = reservation
+            if token in self.reservations:
+                self.reservations[token].append(reservation)
+            else:
+                self.reservations[token] = [reservation]
             self.seats[seat_number].is_available = False
-        raise ValueError("Unable to book the flight: Seats not available")
+        else:
+            raise ValueError("Unable to book the flight: Seats not available")
 
-    def cancel(self, token):
+    def cancel(self, reservation, token):
         if token not in self.reservations.keys():
-            raise ValueError("Unable to cancel the flight: Customer not found")
+            raise KeyError("Unable to cancel the flight: Customer not found")
+        Notvalid = True
+        for _ in self.reservations[token]:
+            if reservation.get_seat_number() == _.get_seat_number():
+                Notvalid = False
+                break
+        if Notvalid:
+            raise ValueError("Unable to cancel the flight: Reservation not found")
         self.booked_seats -= 1
-        del self.reservations[token]
+        self.seats[reservation.get_seat_number()].is_available = True
+        for _ in range(len(self.reservations[token])):
+            if reservation.get_seat_number() == self.reservations[token][_].get_seat_number():
+                self.reservations[token].pop(_)
+                break
+                
+        if len(self.reservations[token]) == 0:
+            del self.reservations[token]
 
     def view_flight_details(self):
         available_seats = []
         for i in self.seats:
             if (self.seats[i].is_available == True):
-                available_seats.add(i)
+                available_seats.append(str(i))
 
         
         return (
-                f"Flight No: {self.__flight_number}\n"
-                f"Destination: {self.__destination}\n"
-                f"Departure Time: {self.__departure_time}\n"
-                f"Total Seats: {self.__total_seats}\n"
-                f"Booked Seats: {self.__booked_seats}\n"
-                f"Available Seats: {", ".join(*available_seats)}"
+                f"Flight No: {self.flight_number}\n"
+                f"Destination: {self.destination}\n"
+                f"Departure Time: {self.departure_time}\n"
+                f"Total Seats: {self.total_seats}\n"
+                f"Booked Seats: {self.booked_seats}\n"
+                f"Available Seats: {", ".join(available_seats)}"
                 )
 
 class Seat:
     def __init__(self, seat_number, seat_type: str, is_available: bool):    # TODO: add grid layout seats
-        self.seat_number = seat_number
+        self.seat_number = int(seat_number)
         self.seat_type = seat_type
         if not isinstance(is_available, bool):
             raise TypeError("is_available must be a boolean")       
         self.is_available = is_available
 
 class Passenger:
-    def __init__(self, name, age: int, passport_number):
+    def __init__(self, name = "John Doe", age = 18, passport_number = "316588"):
         self.__name = name
         self.__age = int(age)
         if age < 0:
@@ -117,13 +174,17 @@ class Passenger:
         return  f"Name: {self.__name}\n"\
                 f"Age: {self.__age}\n"\
                 f"Passport Number: {self.__passport_number}"
-
+    def __str__(self):
+        return self.get_passenger()
 
 class Reservation(Passenger):
-    def __init__(self, flight_number, seat_number, name, age, passport_number):
-        self.__flight = str(flight_number)
-        self.__seat_number = seat_number
-        super().__init__(name, age, passport_number)
+    def __init__(self, flight_number, seat_number, passenger):
+        self.__flight = flight_number
+        self.__seat_number = int(seat_number)
+        if not isinstance(passenger, Passenger):
+            raise TypeError("Passenger must be a Passenger object")
+        self.passenger = passenger
+        super().__init__()
 
     def get_flight(self):
         return self.__flight
@@ -132,90 +193,137 @@ class Reservation(Passenger):
         return self.__seat_number
     
     def get_passenger(self):
-        return Passenger(self.get_name(), self.get_age(), self.get_passport_number)
+        return self.passenger
     
 class AirlineSystem:
-    def __init__(self):
-        self.__flights = {}
+    
+    def __init__(self, flights):
+        if not isinstance(flights, dict):
+            raise TypeError("Flights must be a dictionary")
+        for _ in flights.values():
+            if not isinstance(_, Flight):
+                raise TypeError("Flights must be a dictionary of Flight objects")
+        self._flights = flights
 
     def add_flight(self, flight: Flight):
-        self.__flights[flight.get_flight_number()] = flight
+        if flight.get_flight_number() in self._flights.keys():
+            print("Flight already exists")
+        else:
+            self._flights[flight.get_flight_number()] = flight
+            print("Flight successfully added")
 
-    def book_flight(self, flight_number, seat_number, name, age: int, passport_number):
-        if flight_number in self.__flights:
-            flight = self.__flights[flight_number]
+        return self
+
+    def book_flight(self, flight_number, seat_number, passenger):
+        if flight_number in self._flights:
+            flight = self._flights[flight_number]
             try:
-                flight.book(Reservation(flight_number, seat_number, name, age, passport_number), token = passport_number)
+                flight.book(Reservation(flight_number, seat_number, passenger), token = passenger.get_passport_number())
                 print("Flight booked successfully") 
             except ValueError:
                 print("Seat is already booked")
             except SyntaxError:
                 print("A reservation already exists")
-        print("Flight doesn't exist")
+            except KeyError:
+                print("Invalid seat number")
+        else:
+            print("Flight doesn't exist")
 
-    def cancel_reservation(self, flight_number, passport_number):
-        if flight_number in self.__flights:
-            flight = self.__flights[flight_number]
+        return self
+
+    def cancel_reservation(self, flight_number, seat_number, passenger):
+        if flight_number in self._flights:
+            flight = self._flights[flight_number]
             try:
-                flight.cancel(token = passport_number)
+                flight.cancel(Reservation(flight_number, seat_number, passenger), token = passenger.get_passport_number())
                 print("Reservation cancelled successfully")
             except ValueError:
                 print("No reservation found")
-        print("Flight doesn't exist")
+            except KeyError:
+                print("No customer's reservations found")
+        else:
+            print("Flight doesn't exist")
+
+        return self
 
     def view_flight_details(self, flight_number):
-        if flight_number in self.__flights:
-            flight = self.__flights[flight_number]
+        if flight_number in self._flights:
+            flight = self._flights[flight_number]
             return flight.view_flight_details()
-        print("Flight doesn't exist")
-
-    def view_passenger_details(self, flight_number):
-        if flight_number in self.__flights:
-            flight = self.__flights[flight_number]
-            passengers = []
-            for reservation in flight:
-                passengers.append(reservation.get_passenger())
-            return passengers
-        print("Flight doesn't exist")
-
+        else:
+            return "Flight doesn't exist"
+        
+logins = {"John Doe": [hash("root"), Passenger()]}
 
 if __name__ == "__main__":
-    clear()
-    system = AirlineSystem()
+    flights = {"1": Flight("1","Seoul/Incheon", "22:40", 2)}
+    system = AirlineSystem(flights)
+    
     while True:
-        print("1. Add a flight")
-        print("2. Book a flight")
-        print("3. Cancel a reservation")
-        print("4. View flight details")
-        print("5. View passenger details")
-        print("6. Exit")
-        choice = input("Enter your choice: ")
-        if choice == "1":
-            flight_number = input("Enter the flight number: ")
-            destination = input("Enter the destination: ")
-            departure_time = input("Enter the departure time: ")
-            total_seats = int(input("Enter the total number of seats: "))
-            flight = Flight(flight_number, destination, departure_time, total_seats)
-            system.add_flight(flight)
-        elif choice == "2":
-            flight_number = input("Enter the flight number: ")
-            seat_number = int(input("Enter the seat number: "))
-            name = input("Enter the name: ")
-            age = int(input("Enter the age: "))
-            passport_number = input("Enter the passport number: ")
-            system.book_flight(flight_number, seat_number, name, age, passport_number)
-        elif choice == "3":
-            flight_number = input("Enter the flight number: ")
-            passport_number = input("Enter the passport number: ")
-            system.cancel_reservation(flight_number, passport_number)
-        elif choice == "4":
-            flight_number = input("Enter the flight number: ")
-            print(system.view_flight_details(flight_number))
-        elif choice == "5":
-            flight_number = input("Enter the flight number: ")
-            print(system.view_passenger_details(flight_number))
-        elif choice == "6":
-            exit()
-        input("Press anything to go back")
+        passenger = auth()  # TODO: Anti-bruteforce
+        time.sleep(2)
+
         clear()
+        title = r"""
+
+  /$$$$$$  /$$           /$$ /$$                            /$$$$$$                        /$$            /$$$$$$                        /$$                            
+ /$$__  $$|__/          | $$|__/                           /$$__  $$                      | $$           /$$__  $$                      | $$                            
+| $$  \ $$ /$$  /$$$$$$ | $$ /$$ /$$$$$$$   /$$$$$$       | $$  \__/  /$$$$$$   /$$$$$$  /$$$$$$        | $$  \__/ /$$   /$$  /$$$$$$$ /$$$$$$    /$$$$$$  /$$$$$$/$$$$ 
+| $$$$$$$$| $$ /$$__  $$| $$| $$| $$__  $$ /$$__  $$      |  $$$$$$  /$$__  $$ |____  $$|_  $$_/        |  $$$$$$ | $$  | $$ /$$_____/|_  $$_/   /$$__  $$| $$_  $$_  $$
+| $$__  $$| $$| $$  \__/| $$| $$| $$  \ $$| $$$$$$$$       \____  $$| $$$$$$$$  /$$$$$$$  | $$           \____  $$| $$  | $$|  $$$$$$   | $$    | $$$$$$$$| $$ \ $$ \ $$
+| $$  | $$| $$| $$      | $$| $$| $$  | $$| $$_____/       /$$  \ $$| $$_____/ /$$__  $$  | $$ /$$       /$$  \ $$| $$  | $$ \____  $$  | $$ /$$| $$_____/| $$ | $$ | $$
+| $$  | $$| $$| $$      | $$| $$| $$  | $$|  $$$$$$$      |  $$$$$$/|  $$$$$$$|  $$$$$$$  |  $$$$/      |  $$$$$$/|  $$$$$$$ /$$$$$$$/  |  $$$$/|  $$$$$$$| $$ | $$ | $$
+|__/  |__/|__/|__/      |__/|__/|__/  |__/ \_______/       \______/  \_______/ \_______/   \___/         \______/  \____  $$|_______/    \___/   \_______/|__/ |__/ |__/
+                                                                                                                   /$$  | $$                                            
+                                                                                                                  |  $$$$$$/                                            
+                                                                                                                   \______/                                             
+
+__________________________________________________________________________________________________________________________________________________________________________
+    _    ____ ____
+   / \  / ___/ ___|
+  / _ \ \___ \___ \
+ / ___ \ ___) |__) |
+/_/   \_\____/____/
+"""
+    
+        while True:
+            print(title)
+            print("1. Add a flight")
+            print("2. Book a flight")
+            print("3. Cancel a reservation")
+            print("4. View flight details")
+            print("5. View passengers details")
+            print("6. Exit the program")
+            print("7. Log out")
+            choice = input("Enter your choice: ")
+            clear()
+            if choice == "1":
+                flight_number = input("Enter the flight number: ")
+                destination = input("Enter the destination: ")
+                departure_time = input("Enter the departure time: ")
+                total_seats = int(input("Enter the total number of seats: "))
+                flight = Flight(flight_number, destination, departure_time, total_seats)
+                system.add_flight(flight)
+            elif choice == "2":
+                flight_number = input("Enter the flight number: ")
+                seat_number = int(input("Enter the seat number: "))
+                system.book_flight(flight_number, seat_number, passenger)
+            elif choice == "3":
+                flight_number = input("Enter the flight number: ")
+                seat_number = int(input("Enter the seat number: "))
+                system.cancel_reservation(flight_number, seat_number, passenger)
+            elif choice == "4":
+                flight_number = input("Enter the flight number: ")
+                print(system.view_flight_details(flight_number))
+            elif choice == "5":
+                print(passenger.get_passenger())
+            elif choice == "6":
+                exit()
+            elif choice == "7":
+                break
+            else:
+                continue
+            time.sleep(1.2)
+            getpass("Press anything to go back")
+            clear()
 
