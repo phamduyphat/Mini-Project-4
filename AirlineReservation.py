@@ -209,7 +209,7 @@ class Passenger:
     def __init__(self, name = "John Doe", age = 18, passport_number = "316588"):
         self.__name = name
         self.__age = int(age)
-        if self.age < 0:
+        if self.__age < 0:
             raise ValueError("Age must be a positive number")
         self.__passport_number = passport_number
 
